@@ -110,10 +110,26 @@ handle_cast(_Request, State) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+%% Stratio:
+%% When a custom event_handler doesn't process callback event correctly and results in
+%% an exception, the event manager removes that event handler from the internal
+%% list of registered callbacks. The removal of a faulty event handler is a
+%% silent operation, however when the event handler is deleted due to a fault,
+%% the event manager sends a message {gen_event_EXIT,Handler,Reason} to the
+%% calling process. This out-of-band message is catched by handle_info of
+%% gen_server behaviour.
+%%
+%% The fix is trap this error message (matching the gen_event_EXIT) and raising
+%% an stop of the server. This is catched by the minuteman_ipsets gen_server
+%% supervisor and restarts the server back running the gen_server init code
+%% again, that in turn re-register the callback again.
 -spec(handle_info(Info :: timeout() | term(), State :: #state{}) ->
   {noreply, NewState :: #state{}} |
   {noreply, NewState :: #state{}, timeout() | hibernate} |
   {stop, Reason :: term(), NewState :: #state{}}).
+handle_info({gen_event_EXIT, _Info, Reason}, State) ->
+    io:format("stratio: ~w: detected handler ~p shutdown:~n~p~n", [?MODULE, State, Reason]),
+    {stop, {handler_died, _Info, Reason}, State};
 handle_info(_Info, State) ->
   {noreply, State}.
 
