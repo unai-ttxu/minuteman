@@ -15,3 +15,5 @@ deps/*
 _build/
 TEST-*
 *.dump
+tags
+rebar3.crashdump

@@ -58,7 +58,7 @@
 -type ip_vip() :: {tcp, inet:ip4_address(), inet:port_number()}.
 -type vip_name() :: binary().
 -type named_vip() :: {tcp, {name, {vip_name(), framework_name()}}, inet:port_number()}.
--type vip() :: {ip_vip() | named_vip(), [ip_port()]}.
+-type vip() :: {ip_vip() | named_vip(), [{inet:ip4_address(), ip_port()}]}.
 
 
 
