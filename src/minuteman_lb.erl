@@ -309,7 +309,8 @@ probabilistic_backend_chooser(_Now, _ReachabilityCache, RemainingBackendAddrs, R
 probabilistic_backend_chooser(Now, ReachabilityCache, RemainingBackendAddrs, ReachableAndOpenBackends,
   OpenBackends, OtherBackends) when length(RemainingBackendAddrs) > 0 ->
   {RemainingBackendAddrs1, Item} = pop_item_from_list(RemainingBackendAddrs),
-  Backend = get_backend_or_default(Item),
+  JaviItem = element(2,Item),
+  Backend = get_backend_or_default(JaviItem),
   {IP, _Port} = Backend#backend.ip_port,
   {ReachabilityCache1, Reachable} = is_reachable(ReachabilityCache, IP),
   IsOpen = is_open(Now, Backend),
