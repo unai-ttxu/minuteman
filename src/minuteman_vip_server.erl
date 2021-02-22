@@ -14,7 +14,7 @@
 
 %% API
 -export([stop/0, start_link/0, push_vips/1, get_backend/1, get_backend/2, get_vips/0,
-  get_backends_for_vip/2, get_backends_for_vip/1, push_vips_sync/1, start_link_nosubscribe/0]).
+  get_backends_for_vip/2, get_backends_for_vip/1, push_vips_sync/1, start_link_nosubscribe/0, delete_vip/1]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -75,6 +75,10 @@ push_vips(Vips) ->
 
 get_vips() ->
   gen_server:call(?SERVER, get_vips).
+
+delete_vip(VipKey) ->
+  lager:warning("Deleting Vip inside private method: ~p", [VipKey]),
+  gen_server:call(?SERVER, {delete_vip, VipKey}).
 
 get_backends_for_vip(IP, Port) ->
   get_backends_for_vip({IP, Port}).
@@ -142,6 +146,9 @@ init([nosubscribe]) ->
   {stop, Reason :: term(), NewState :: #state{}}).
 handle_call({push_vips, Vips}, _From, State) ->
   handle_push_vips(Vips),
+  {reply, ok, State};
+handle_call({delete_vip, VipKey}, _From, State) ->
+  handle_delete_vip(VipKey),
   {reply, ok, State};
 handle_call(get_vips, _From, State = #state{}) ->
   Vips = handle_get_vips(),
@@ -233,6 +240,10 @@ handle_push_vips(Vips) ->
   VipsToDelete = ordsets:subtract(CurrentVIPsSet, KeysSet),
   [true = ets:delete(vips, Key) || Key <- VipsToDelete],
   [true = ets:insert(vips, Vip) || Vip <- Vips].
+
+handle_delete_vip(VipKey) ->
+  lager:warning("Deleting Vip inside handle method: ~p", [VipKey]),
+  ets:delete(vips, VipKey).
 
 -spec(handle_backends_for_vip(inet:ip4_address(), inet:port_number()) -> term()).
 handle_backends_for_vip(IP, Port) ->
@@ -327,6 +338,7 @@ command(_S) ->
     oneof([{call, ?MODULE, get_backend, [ip_port()]},
            {call, ?MODULE, push_vips_sync, [vips()]},
            {call, ?MODULE, get_vips, []},
+           {call, ?MODULE, delete_vip, []},
            {call, ?MODULE, get_backends_for_vip, [ip_port()]}]).
 
 -endif.
