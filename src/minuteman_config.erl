@@ -29,7 +29,9 @@
 
 
 agent_poll_interval() ->
-  application:get_env(minuteman, agent_poll_interval, 2000).
+  AGENT_POLL_INTERVAL = erlang:list_to_integer(os:getenv("AGENT_POLL_INTERVAL","2000")),
+  lager:debug("Using ~p ms interval for AGENT_POLL_INTERVAL", [AGENT_POLL_INTERVAL]),
+  application:get_env(minuteman, agent_poll_interval, AGENT_POLL_INTERVAL).
 
 tcp_connect_threshold() ->
   application:get_env(minuteman, tcp_connect_threshold, 400).
