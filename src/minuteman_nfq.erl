@@ -221,7 +221,11 @@ nfnl_query(Socket, Query) ->
       case netlink:nl_ct_dec(Reply) of
         [{netlink, error, [], _, _, {ErrNo, _}}|_] when ErrNo == 0 ->
           ok;
+        [{netlink, error, [256], _, _, {ErrNo, _}}|_] when ErrNo == 0 ->
+          ok;
         [{netlink, error, [], _, _, {ErrNo, _}}|_] ->
+          {error, ErrNo};
+        [{netlink, error, [256], _, _, {ErrNo, _}}|_] ->
           {error, ErrNo};
         [Msg|_] ->
           {error, Msg};
@@ -291,3 +295,4 @@ accept_packet(Info, _State = #state{queue = Queue, socket = Socket}) ->
   gen_socket:sendto(Socket, netlink:sockaddr_nl(netlink, 0, 0), Request).
 
 
+                    
